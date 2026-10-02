@@ -100,11 +100,28 @@ def sign(run: Run) -> None:
 
 
 def verify(run: Run) -> None:
-    run.verified = run.gecko.call("verify_signed_transaction", {"transaction": run.signed, "binding": run.prepared.binding, "binding_strength": run.prepared.binding_strength, "last_valid_block_height": run.prepared.last_valid_block_height, "rpc_url": run.chain.rpc_url})
+    run.verified = run.gecko.call(
+        "verify_signed_transaction",
+        {
+            "transaction": run.signed,
+            "binding": run.prepared.binding,
+            "binding_strength": run.prepared.binding_strength,
+            "last_valid_block_height": run.prepared.last_valid_block_height,
+            "rpc_url": run.chain.rpc_url,
+        },
+    )
 
 
 def submit(run: Run) -> None:
-    run.submitted = run.gecko.call("submit_transaction", {"transaction": run.signed, "binding": run.prepared.binding, "last_valid_block_height": run.prepared.last_valid_block_height, "rpc_url": run.chain.rpc_url})
+    run.submitted = run.gecko.call(
+        "submit_transaction",
+        {
+            "transaction": run.signed,
+            "binding": run.prepared.binding,
+            "last_valid_block_height": run.prepared.last_valid_block_height,
+            "rpc_url": run.chain.rpc_url,
+        },
+    )
 
 
 def write_the_receipt(run: Run) -> None:

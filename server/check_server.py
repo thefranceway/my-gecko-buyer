@@ -10,21 +10,30 @@ from __future__ import annotations
 
 from typing import Any
 
-from .guard import is_public_url
-
 # local buyer types
 from buyer.check import check_all
 from buyer.intent import IntentRecord
-from buyer.prepared import Prepared, GeckoRefused
+from buyer.prepared import GeckoRefused, Prepared
+
+from .guard import is_public_url
+
 
 def _intent_from_dict(d: dict[str, Any]) -> IntentRecord:
     # fixtures/cases have "context" + ask etc; intents/ files are already IntentRecord dicts.
     # Be tolerant: if dict looks like Context + product/quantity, build IntentRecord.
     # If it already has all IntentRecord fields, use directly.
     allowed = {
-        "ask", "store", "product", "quantity", "budget_raw",
-        "mint", "buyer", "network", "store_authority",
-        "menu_price_raw", "pinned_at"
+        "ask",
+        "store",
+        "product",
+        "quantity",
+        "budget_raw",
+        "mint",
+        "buyer",
+        "network",
+        "store_authority",
+        "menu_price_raw",
+        "pinned_at",
     }
     # If dict is the whole fixture, pull from context + expected shape
     if "context" in d and "ask" in d:
@@ -42,7 +51,7 @@ def _intent_from_dict(d: dict[str, Any]) -> IntentRecord:
             mint=ctx.get("pay_mint", ""),
             buyer=ctx.get("buyer", ""),
             network=ctx.get("network", ""),
-            store_authority="",  # will be filled from menu in real pin, but not needed for quantity check
+            store_authority="",  # filled from menu
             menu_price_raw=None,
         )
     # filter to allowed keys
@@ -54,10 +63,13 @@ def _intent_from_dict(d: dict[str, Any]) -> IntentRecord:
     filtered.setdefault("pinned_at", filtered.get("pinned_at", "2026-01-01T00:00:00+00:00"))
     return IntentRecord(**filtered)
 
-def check_purchase(intent: dict[str, Any], prepared_answer: dict[str, Any], rpc_url: str | None = None) -> dict[str, Any]:
+
+def check_purchase(
+    intent: dict[str, Any], prepared_answer: dict[str, Any], rpc_url: str | None = None
+) -> dict[str, Any]:
     """
     intent: dict that is an IntentRecord (as pinned), or a fixture dict containing context.
-    prepared_answer: dict that is the answer from prepare_purchase (fixture["calls"]["prepare_purchase"])
+    prepared_answer: dict from prepare_purchase
     rpc_url: optional, if given and not public https, refuse immediately.
     Returns: {"passed": bool, "field": str|None, "asked": Any, "found": Any, "reason": str}
     """
@@ -77,7 +89,9 @@ def check_purchase(intent: dict[str, Any], prepared_answer: dict[str, Any], rpc_
         # intent may already be IntentRecord dict, or fixture dict
         if "product" in intent and "quantity" in intent:
             # looks like IntentRecord
-            irec = IntentRecord(**{k: v for k, v in intent.items() if k in IntentRecord.__dataclass_fields__})
+            irec = IntentRecord(
+                **{k: v for k, v in intent.items() if k in IntentRecord.__dataclass_fields__}
+            )
         else:
             # try fixture style or minimal
             # if intent has ask and context, use helper
@@ -159,9 +173,12 @@ def check_purchase(intent: dict[str, Any], prepared_answer: dict[str, Any], rpc_
         "results": [x.line() for x in verdict.results],
     }
 
+
 # quick self-test for 5-beans when run directly
 if __name__ == "__main__":
-    import json, pathlib
+    import json
+    import pathlib
+
     fixture = json.loads(pathlib.Path("fixtures/cases/5-beans.json").read_text())
     # build a minimal intent that asks 2 beans
     intent = {

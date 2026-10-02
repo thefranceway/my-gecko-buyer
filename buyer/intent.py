@@ -9,7 +9,6 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from.check import NotYetWritten
 
 @dataclass(frozen=True)
 class MenuItem:
@@ -18,13 +17,14 @@ class MenuItem:
     decimals: int
     mint: str
 
+
 @dataclass(frozen=True)
 class Menu:
     store: str
     address: str
     authority: str
     total_purchases: int | None
-    products: tuple[MenuItem,...]
+    products: tuple[MenuItem, ...]
 
     @classmethod
     def from_list_stores(cls, answer: dict[str, Any], store: str) -> Menu:
@@ -41,7 +41,10 @@ class Menu:
                     ),
                 )
         names = ", ".join(e.get("store", "?") for e in answer.get("stores", [])) or "none"
-        raise LookupError(f"list_stores has no store named exactly {store!r} (it returned: {names})")
+        raise LookupError(
+            f"list_stores has no store named exactly {store!r} (it returned: {names})"
+        )
+
 
 @dataclass(frozen=True)
 class Context:
@@ -50,6 +53,7 @@ class Context:
     buyer: str
     pay_mint: str
     budget_raw: int
+
 
 @dataclass(frozen=True)
 class IntentRecord:
@@ -64,6 +68,7 @@ class IntentRecord:
     store_authority: str
     menu_price_raw: int | None
     pinned_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+
 
 def parse_intent(ask: str, menu: Menu, context: Context) -> IntentRecord:
     low = ask.lower()
@@ -125,7 +130,7 @@ def parse_intent(ask: str, menu: Menu, context: Context) -> IntentRecord:
             if p.name == product or product.lower() in p.name.lower():
                 dec = p.decimals
                 break
-        budget_raw = n * (10 ** dec)
+        budget_raw = n * (10**dec)
 
     # mint is ALWAYS pay_mint address, never menu mint, never symbol
     mint = context.pay_mint
@@ -155,8 +160,10 @@ def parse_intent(ask: str, menu: Menu, context: Context) -> IntentRecord:
         menu_price_raw=menu_price_raw,
     )
 
+
 def slug(text: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")[:40] or "ask"
+
 
 def pin(record: IntentRecord, directory: Path) -> Path:
     directory.mkdir(parents=True, exist_ok=True)
@@ -166,6 +173,7 @@ def pin(record: IntentRecord, directory: Path) -> Path:
         json.dump(asdict(record), handle, indent=2)
         handle.write("\n")
     return path
+
 
 def read_pin(path: Path) -> IntentRecord:
     return IntentRecord(**json.loads(path.read_text(encoding="utf-8")))

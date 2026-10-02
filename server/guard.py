@@ -7,11 +7,13 @@ a check. Failing closed avoids letting a private host through because we
 could not see its private IP.
 Standard library only.
 """
+
 from __future__ import annotations
 
 import ipaddress
 import socket
 from urllib.parse import urlparse
+
 
 def _is_private_ip(ip: ipaddress._BaseAddress) -> bool:
     # loopback, private, link-local, multicast, reserved, unspecified all count as private
@@ -25,6 +27,7 @@ def _is_private_ip(ip: ipaddress._BaseAddress) -> bool:
         # 0.0.0.0/8 and similar are caught by unspecified/reserved, but be explicit
     )
 
+
 def is_public_url(url: str) -> bool:
     try:
         parsed = urlparse(url)
@@ -32,7 +35,7 @@ def is_public_url(url: str) -> bool:
         return False
 
     # must be https only
-    if parsed.scheme.lower()!= "https":
+    if parsed.scheme.lower() != "https":
         return False
 
     host = parsed.hostname
@@ -59,7 +62,7 @@ def is_public_url(url: str) -> bool:
         return False
 
     found_public = False
-    for family, _, _, _, sockaddr in infos:
+    for _family, _, _, _, sockaddr in infos:
         ip_str = sockaddr[0]
         try:
             ip = ipaddress.ip_address(ip_str)
